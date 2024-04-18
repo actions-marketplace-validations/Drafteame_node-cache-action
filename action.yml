@@ -1,0 +1,44 @@
+name: NodeJS with cache
+author: Draftea
+description: Setup requested NodeJS version with managed modules caching.
+
+inputs:
+  node-version:
+    description: Desired NodeJS version.
+    default:
+  working-directory:
+    description: path where the npm install command is run.
+    default:
+  cache-key-suffix:
+    description: Optional cache key suffix.
+    default:
+
+outputs:
+  cache-path:
+    description: NodeJS modules cache path.
+    value: ${{ steps.nodejs-env.outputs.module-cache-path }}
+  cache-key:
+    description: Cache key holding module cache paths.
+    value: ${{ steps.nodejs-env.outputs.cache-key }}
+
+runs:
+  using: composite
+  steps:
+    - name: ⚙️ Setup NodeJS
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+    - name: Determine node_modules paths and construct cache key
+      id: nodejs-env
+      run: |
+        echo "cache-path=${{ inputs.working-directory }}/node_modules" >>"$GITHUB_OUTPUT"
+        cacheKeyRoot="${{ runner.os }}-nodejs${{ inputs.cache-key-suffix && format('-{0}',inputs.cache-key-suffix) }}-"
+        echo "cache-key-restore=$cacheKeyRoot" >>"$GITHUB_OUTPUT"
+        echo "cache-key=${cacheKeyRoot}${{ hashFiles(format('{0}/{1}', inputs.working-directory, 'package-lock.json')) }}" >>"$GITHUB_OUTPUT"
+      shell: bash
+    - name: Setup cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.nodejs-env.outputs.cache-path }}
+        key: ${{ steps.nodejs-env.outputs.cache-key }}
+        restore-keys: ${{ steps.nodejs-env.outputs.cache-key-restore }}
