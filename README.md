@@ -1,17 +1,16 @@
 # node-cache-action
 
-Simple github action that helps to execute encryption and decryption of json files using the ejson cli. **Current ejson version 1.4.1**.
+Composite GitHub Action combining actions/setup-node with actions/cache for node_modules caching.
 
 ## Configuration
 
 ```yaml
 - name: ejson action
-  uses: Drafteame/ejson-action@main
+  uses: Drafteame/node-cache-action-action@main
   with:
-    action: decrypt # [encrypt, decrypt]
-    file_path: <path-to-ejson-file>
-    private_key: <private-key-string> # needed if encrypt is used as action
-    out_file: <path-to-json-file> # File where the decrypted content will be stored (optional)
+    node-version: '20' # nodejs version
+    working-directory: cmd # path where the npm install command is run.
+    cache-key-suffix: suffix # Optional cache key suffix
 
 ```
 
@@ -19,7 +18,8 @@ Simple github action that helps to execute encryption and decryption of json fil
 
 | Output     | Description                                       |
 |------------|---------------------------------------------------|
-| **decrypted**  | Decrypted content of the file when the action is performed with the `decrypt` action |
+| **cache-path**  | NodeJS modules cache path (node_modules). |
+| **cache-key**  | Cache key holding module cache paths. |
 
 ## Usage
 
@@ -27,41 +27,18 @@ Simple github action that helps to execute encryption and decryption of json fil
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
+        - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Decrypt file
-      uses: Drafteame/ejson-action@main
-      id: decrypt
-      with:
-        action: decrypt
-        file_path: <path-to-ejson-file>
-        private_key: <private-key-string>
-        out_file: <path-to-json-file>
-
-    - name: Decrypted content
-      run: |
-        echo "Decrypted:"
-        echo '${{ steps.decrypt.outputs.decrypted }}'
-        echo
-        echo
-
-        echo "Stored File:"
-        cat <path-to-json-file>
-        echo
-
-    - name: Encrypt file
-      uses: Drafteame/ejson-action@main
-      id: encrypt
-      with:
-        action: encrypt
-        file_path: <path-to-ejson-file>
-        private_key: <private-key-string>
-
-    - name: Encrypted content
-      run: |
-        echo "Encrypted content:"
-        cat <path-to-ejson-file>
+        - name: ⚙️ Setup NodeJS with cache
+        uses: Drafteame/node-cache-action
+        with:
+            node-version: '20'
+            working-directory: cmd/${{ github.event.inputs.service }}
+            cache-key-suffix: ${{ github.event.inputs.stage }}
+            
+      - name: Install SLS dependencies
+        working-directory: cmd/${{ github.event.inputs.service }}
+        run: npm install
 ```
