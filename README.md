@@ -6,7 +6,7 @@ Composite GitHub Action combining actions/setup-node with actions/cache for node
 
 ```yaml
 - name: ejson action
-  uses: Drafteame/node-cache-action-action@main
+  uses: Drafteame/node-cache-action@main
   with:
     node-version: '20' # nodejs version
     working-directory: cmd # path where the npm install command is run.
