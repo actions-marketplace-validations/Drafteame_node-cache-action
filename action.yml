@@ -25,7 +25,7 @@ runs:
   using: composite
   steps:
     - name: ⚙️ Setup NodeJS
-      uses: actions/setup-node@v4
+      uses: useblacksmith/setup-node@v5
       with:
         node-version: ${{ inputs.node-version }}
     - name: Determine node_modules paths and construct cache key
@@ -37,7 +37,7 @@ runs:
         echo "cache-key=${cacheKeyRoot}${{ hashFiles(format('{0}/{1}', inputs.working-directory, 'package-lock.json')) }}" >>"$GITHUB_OUTPUT"
       shell: bash
     - name: Setup cache
-      uses: actions/cache@v4
+      uses: useblacksmith/cache@v5
       with:
         path: ${{ steps.nodejs-env.outputs.cache-path }}
         key: ${{ steps.nodejs-env.outputs.cache-key }}
